@@ -8,6 +8,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: MobilePhoneRepository::class)]
 class MobilePhone
 {
+    public const ALLOWED_OPERATOR_CODES = [50, 67, 63, 68];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
