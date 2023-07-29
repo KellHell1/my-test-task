@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Repository\MobilePhoneRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Faker\Factory;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -107,11 +108,46 @@ class UserHandler
         $this->entityManager->flush();
     }
 
-    public function checkEmptyDB()
+    public function checkEmptyDB(): void
     {
+        if ($this->userRepository->isTableEmpty()) {
+            $this->fillingUsersForDB();
+        }
     }
 
-    public function fillingUsersForDB()
+    public function fillingUsersForDB(): void
     {
+        $operators = MobilePhone::ALLOWED_OPERATOR_CODES;
+        $minBalance = -5000;
+        $maxBalance = 15000;
+        $faker = Factory::create();
+
+        for ($i = 0; $i < 4; $i++) {
+            $randomName = $faker->firstName;
+            $birthdate = $faker->dateTimeBetween('-126 years', '-18 years')->format('d-m-Y');
+
+            $user = new User();
+            $user->setName($randomName);
+            $user->setDateBirth(new \DateTime($birthdate));
+
+            $numberOfPhoneNumbers = mt_rand(1, 3);
+            for ($j = 0; $j < $numberOfPhoneNumbers; $j++) {
+                $operatorCode = $operators[array_rand($operators)];
+                $number = '380-' . $operatorCode . '-' . $faker->numerify('#######');
+
+                $balance = mt_rand($minBalance, $maxBalance) / 100.0;
+
+                $phoneNumber = new MobilePhone();
+                $phoneNumber->setNumber($number);
+                $phoneNumber->setBalance($balance);
+                $phoneNumber->setUser($user);
+
+                $this->entityManager->persist($phoneNumber);
+            }
+
+            $this->entityManager->persist($user);
+        }
+
+        $this->entityManager->flush();
     }
 }

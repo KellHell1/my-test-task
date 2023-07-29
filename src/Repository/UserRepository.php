@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -19,6 +21,20 @@ class UserRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, User::class);
+    }
+
+    /**
+     * @throws NonUniqueResultException|NoResultException
+     */
+    public function isTableEmpty(): bool
+    {
+        $queryBuilder = $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->setMaxResults(1);
+
+        $count = $queryBuilder->getQuery()->getSingleScalarResult();
+
+        return ($count === 0);
     }
 
 //    /**
