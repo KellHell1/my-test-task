@@ -10,7 +10,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class UserController extends AbstractController
 {
-    public function __construct(private UserHandler $userHandler)
+    public function __construct(private readonly UserHandler $userHandler)
     {
     }
 
@@ -18,9 +18,7 @@ class UserController extends AbstractController
     #[Route(path: '/user/info/{user_id}', requirements: ['user_id' => '\d+'], methods: ['GET'])]
     public function getUserInfoById(int $user_id): JsonResponse
     {
-        $userInfo = $this->userHandler->getUserInfo($user_id);
-
-        return new JsonResponse($userInfo);
+        return new JsonResponse($this->userHandler->getUserInfo($user_id));
     }
 
 

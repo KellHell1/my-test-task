@@ -9,6 +9,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use App\Entity\MobilePhone;
 use Faker\Factory;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'FillingDatabase',
@@ -23,6 +24,8 @@ class FillingDatabaseCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $mysql = new PDO("mysql:host=database:3306;dbname=test", 'symfony', 'symfony');
+
+        $io = new SymfonyStyle($input, $output);
 
         if ($mysql->query("SELECT COUNT(id) AS total_count FROM user LIMIT 1")->fetch(PDO::FETCH_ASSOC)['total_count'] === 0) {
             $operators = MobilePhone::ALLOWED_OPERATOR_CODES;
@@ -40,7 +43,7 @@ class FillingDatabaseCommand extends Command
             $phoneInsertStmt = $mysql->prepare("INSERT INTO mobile_phone (number, balance, user_id) VALUES (:number, :balance, :userId)");
 
             for ($i = 0; $i < 2000; $i++) {
-                $randomName = $faker->firstName;
+                $randomName = $faker->firstName();
                 $birthdate = $faker->dateTimeBetween('-126 years', '-18 years')->format('Y-m-d');
 
                 // Bind parameters and execute user insert statement
@@ -66,7 +69,7 @@ class FillingDatabaseCommand extends Command
 
             // Commit the transaction
             $mysql->commit();
-
+            $io->info('Your database has 2000 users with phone numbers');
 
         }
         return Command::SUCCESS;
