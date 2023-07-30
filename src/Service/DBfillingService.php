@@ -11,11 +11,23 @@ if ($mysql->query("SELECT COUNT(id) AS total_count FROM user LIMIT 1")->fetch(PD
     $maxBalance = 15000;
     $faker = Factory::create();
 
+    // Start a transaction
+    $mysql->beginTransaction();
+
+    // Prepare the user insert statement
+    $userInsertStmt = $mysql->prepare("INSERT INTO user (name, date_birth) VALUES (:name, :birthdate)");
+
+    // Prepare the mobile_phone insert statement
+    $phoneInsertStmt = $mysql->prepare("INSERT INTO mobile_phone (number, balance, user_id) VALUES (:number, :balance, :userId)");
+
     for ($i = 0; $i < 2000; $i++) {
         $randomName = $faker->firstName;
         $birthdate = $faker->dateTimeBetween('-126 years', '-18 years')->format('Y-m-d');
 
-        $mysql->query("INSERT INTO user (name, date_birth) VALUES ('$randomName', '$birthdate')");
+        // Bind parameters and execute user insert statement
+        $userInsertStmt->bindValue(':name', $randomName);
+        $userInsertStmt->bindValue(':birthdate', $birthdate);
+        $userInsertStmt->execute();
 
         $userId = $mysql->lastInsertId(); // Get the auto-generated ID of the inserted user
 
@@ -25,7 +37,14 @@ if ($mysql->query("SELECT COUNT(id) AS total_count FROM user LIMIT 1")->fetch(PD
 
             $balance = mt_rand($minBalance, $maxBalance) / 100.0;
 
-            $mysql->query("INSERT INTO mobile_phone (number, balance, user_id) VALUES ('$number', '$balance', '$userId')");
+            // Bind parameters and execute mobile_phone insert statement
+            $phoneInsertStmt->bindValue(':number', $number);
+            $phoneInsertStmt->bindValue(':balance', $balance);
+            $phoneInsertStmt->bindValue(':userId', $userId);
+            $phoneInsertStmt->execute();
         }
     }
+
+    // Commit the transaction
+    $mysql->commit();
 }
