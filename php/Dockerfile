@@ -1,4 +1,4 @@
-FROM php:8.0-fpm
+FROM php:8.2.5-fpm
 
 RUN apt update \
     && apt install -y zlib1g-dev g++ git libicu-dev zip libzip-dev zip \
@@ -15,6 +15,3 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 RUN curl -sS https://get.symfony.com/cli/installer | bash
 RUN mv /root/.symfony5/bin/symfony /usr/local/bin/symfony
-
-# Filling DB if empty
-CMD ["php", "/var/www/src/Service/DBfillingRevice.php"]
