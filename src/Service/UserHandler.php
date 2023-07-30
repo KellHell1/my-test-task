@@ -56,10 +56,11 @@ class UserHandler
     {
         $sum = $data['sum'];
 
-        // Check if the sum is within the acceptable limit.
         if ($sum > 100.00) {
             throw new BadRequestHttpException('Maximum deposit amount per transaction 100.00');
         }
+
+        $this->validatePhoneNumberFormat($data['number']);
 
         $number = $this->mobilePhoneRepository->findOneBy(['number' => $data['number']])
             ?? throw new NotFoundHttpException('number not found');
@@ -84,6 +85,8 @@ class UserHandler
         $this->entityManager->persist($newUser);
 
         foreach ($data['numbers'] as $number) {
+            $this->validatePhoneNumberFormat($number['number']);
+
             $newMobilePhone = new MobilePhone();
             $newMobilePhone->setUser($newUser);
             $newMobilePhone->setNumber($number['number']);
@@ -104,6 +107,8 @@ class UserHandler
     {
         $user = $this->userRepository->find($data['userId'])
             ?? throw new NotFoundHttpException('user not found');
+
+        $this->validatePhoneNumberFormat($data['number']);
 
         // Check if the mobile phone number already exists for the user.
         if (!$this->mobilePhoneRepository->findOneBy(['user' => $user, 'number' => $data['number']])) {
@@ -136,5 +141,20 @@ class UserHandler
 
         $this->entityManager->remove($user);
         $this->entityManager->flush();
+    }
+
+    /**
+     * Validate the format of a phone number.
+     *
+     * @param string $phoneNumber The phone number to be validated.
+     * @throws BadRequestHttpException If the phone number format is invalid.
+     */
+    private function validatePhoneNumberFormat(string $phoneNumber): void
+    {
+        $pattern = '/^380-(50|67|63|68)-\d{7}$/';
+
+        if (!preg_match($pattern, $phoneNumber)) {
+            throw new BadRequestHttpException('Invalid phone number format. It should be in the format "380" - one of (50, 67, 63, 68) - 7 digits.');
+        }
     }
 }
