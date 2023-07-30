@@ -23,20 +23,6 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
-    /**
-     * @throws NonUniqueResultException|NoResultException
-     */
-    public function isTableEmpty(): bool
-    {
-        $queryBuilder = $this->createQueryBuilder('u')
-            ->select('COUNT(u.id)')
-            ->setMaxResults(1);
-
-        $count = $queryBuilder->getQuery()->getSingleScalarResult();
-
-        return ($count === 0);
-    }
-
 //    /**
 //     * @return User[] Returns an array of User objects
 //     */
